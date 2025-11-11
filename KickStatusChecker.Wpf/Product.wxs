@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" 
+           Name="Kick Stream Monitor" 
+           Language="1033" 
+           Version="1.0.0.0" 
+           Manufacturer="KickStatusChecker" 
+           UpgradeCode="12345678-1234-1234-1234-123456789012">
+    
+    <Package InstallerVersion="200" 
+             Compressed="yes" 
+             InstallScope="perMachine" 
+             Description="Kick Stream Monitor Installer"
+             Comments="Desktop application for monitoring Kick stream status" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Features -->
+    <Feature Id="ProductFeature" Title="Kick Stream Monitor" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="ApplicationShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+
+    <!-- Directory Structure -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="Kick Stream Monitor" />
+      </Directory>
+      
+      <!-- Start Menu -->
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="Kick Stream Monitor"/>
+      </Directory>
+      
+      <!-- Desktop -->
+      <Directory Id="DesktopFolder" Name="Desktop" />
+    </Directory>
+
+    <!-- Components -->
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="MainExecutable">
+        <File Id="KickStatusCheckerWpfExe" 
+              Source="$(var.KickStatusChecker.Wpf.TargetPath)" 
+              KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Start Menu Shortcut -->
+    <Component Id="ApplicationShortcut" Directory="ApplicationProgramsFolder">
+      <Shortcut Id="ApplicationStartMenuShortcut"
+                Name="Kick Stream Monitor"
+                Description="Monitor Kick stream status"
+                Target="[#KickStatusCheckerWpfExe]"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="icon.ico" />
+      <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+      <RegistryValue Root="HKCU" 
+                     Key="Software\Microsoft\KickStreamMonitor" 
+                     Name="installed" 
+                     Type="integer" 
+                     Value="1" 
+                     KeyPath="yes"/>
+    </Component>
+
+    <!-- Desktop Shortcut (Optional) -->
+    <Component Id="DesktopShortcut" Directory="DesktopFolder">
+      <Condition>INSTALLDESKTOPSHORTCUT</Condition>
+      <Shortcut Id="ApplicationDesktopShortcut"
+                Name="Kick Stream Monitor"
+                Description="Monitor Kick stream status"
+                Target="[#KickStatusCheckerWpfExe]"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="icon.ico" />
+      <RegistryValue Root="HKCU" 
+                     Key="Software\Microsoft\KickStreamMonitor" 
+                     Name="desktopshortcut" 
+                     Type="integer" 
+                     Value="1" 
+                     KeyPath="yes"/>
+    </Component>
+
+    <!-- Icons -->
+    <Icon Id="icon.ico" SourceFile="icon.ico"/>
+
+    <!-- UI Configuration -->
+    <UIRef Id="WixUI_InstallDir" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    
+    <!-- Optional Desktop Shortcut -->
+    <Property Id="INSTALLDESKTOPSHORTCUT" Value="1" />
+    
+    <!-- License -->
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+
+  </Product>
+</Wix>

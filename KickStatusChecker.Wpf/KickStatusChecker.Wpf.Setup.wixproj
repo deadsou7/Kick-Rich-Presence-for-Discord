@@ -1,0 +1,17 @@
+<Project Sdk="WixToolset.Sdk/4.0.0">
+
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <OutputName>KickStreamMonitor-Setup</OutputName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="KickStatusChecker.Wpf.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="4.0.0" />
+  </ItemGroup>
+
+</Project>
