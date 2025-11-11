@@ -1,0 +1,114 @@
+<Window x:Class="KickStatusChecker.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Kick Stream Monitor"
+        Height="520"
+        Width="620"
+        WindowStartupLocation="CenterScreen"
+        StateChanged="Window_StateChanged">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="Kick Username" FontWeight="SemiBold"/>
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <TextBox Width="220"
+                         Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Content="{Binding StartStopButtonText}"
+                        Command="{Binding ToggleMonitoringCommand}"
+                        Margin="12,0,0,0"
+                        Width="120"
+                        Height="32"/>
+            </StackPanel>
+            <TextBlock Text="{Binding UsernameValidationMessage}"
+                       Foreground="Crimson"
+                       Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <GroupBox Header="Status" Grid.Row="1" Margin="0,0,0,16">
+            <StackPanel Margin="10">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Current Status:" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding CurrentStatusText}"
+                               Margin="8,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="Gray" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLive}" Value="True">
+                                        <Setter Property="Foreground" Value="#FF0EAD69" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <TextBlock Text="Display Mode:" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding DisplayedStatusText}" Margin="8,0,0,0" />
+                </StackPanel>
+
+                <TextBlock Text="{Binding StreamTitle, StringFormat=Title: {0}}"
+                           Margin="0,12,0,0" />
+                <TextBlock Text="{Binding Category, StringFormat=Category: {0}}"
+                           Margin="0,4,0,0" />
+                <TextBlock Text="{Binding LastUpdatedDisplay, StringFormat=Last Update: {0}}"
+                           Margin="0,4,0,0" />
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="Crimson"
+                           Margin="0,10,0,0"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Settings" Grid.Row="2" Margin="0,0,0,16">
+            <StackPanel Margin="10">
+                <TextBlock Text="Update Interval (seconds)"
+                           FontWeight="SemiBold"/>
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <Slider Minimum="10"
+                            Maximum="30"
+                            Value="{Binding UpdateIntervalSeconds, Mode=TwoWay}"
+                            TickFrequency="1"
+                            IsSnapToTickEnabled="True"
+                            Width="240"/>
+                    <TextBlock Text="{Binding UpdateIntervalSeconds}"
+                               Margin="12,0,0,0"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <CheckBox Content="Minimize to system tray when minimized"
+                          Margin="0,12,0,0"
+                          IsChecked="{Binding MinimizeToTray}"/>
+
+                <TextBlock Text="Status Display Mode"
+                           Margin="0,12,0,0"
+                           FontWeight="SemiBold"/>
+                <ComboBox ItemsSource="{Binding StatusDisplayModes}"
+                          SelectedValuePath="Mode"
+                          DisplayMemberPath="Name"
+                          SelectedValue="{Binding StatusDisplayMode, Mode=TwoWay}"
+                          Width="220"
+                          Margin="0,6,0,0"/>
+            </StackPanel>
+        </GroupBox>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Minimize"
+                    Margin="0,0,8,0"
+                    Width="100"
+                    Height="32"
+                    Command="{Binding MinimizeCommand}"/>
+            <Button Content="Exit"
+                    Width="100"
+                    Height="32"
+                    Command="{Binding ExitCommand}"/>
+        </StackPanel>
+    </Grid>
+</Window>
