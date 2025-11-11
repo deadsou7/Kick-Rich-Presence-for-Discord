@@ -17,7 +17,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private const int MaximumIntervalSeconds = 30;
     private static readonly Regex UsernameRegex = new("^[A-Za-z0-9_]+$", RegexOptions.Compiled);
 
-    private readonly KickStatusChecker.KickStatusChecker _statusChecker;
+    private readonly global::KickStatusChecker.KickStatusChecker _statusChecker;
     private readonly SettingsService _settingsService;
     private readonly MonitoringService _monitoringService;
     private readonly DiscordPresenceManager _discordPresenceManager;
@@ -54,7 +54,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         Logger.LogInfo("Initializing MainViewModel");
         
         _syncContext = SynchronizationContext.Current;
-        _statusChecker = new KickStatusChecker.KickStatusChecker();
+        _statusChecker = new global::KickStatusChecker.KickStatusChecker();
         _discordPresenceManager = new DiscordPresenceManager();
         _monitoringService = new MonitoringService(_statusChecker, _discordPresenceManager, _syncContext);
         _settingsService = new SettingsService();
@@ -352,7 +352,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private void OnStreamStatusUpdated(object? sender, KickStatusChecker.Models.StreamInfo? info)
+    private void OnStreamStatusUpdated(object? sender, global::KickStatusChecker.Models.StreamInfo? info)
     {
         if (info != null)
         {
