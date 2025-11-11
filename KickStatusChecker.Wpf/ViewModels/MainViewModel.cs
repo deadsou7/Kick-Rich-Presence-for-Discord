@@ -19,13 +19,13 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     private readonly KickStatusChecker.KickStatusChecker _statusChecker;
     private readonly SettingsService _settingsService;
+    private readonly MonitoringService _monitoringService;
+    private readonly DiscordPresenceManager _discordPresenceManager;
     private readonly SynchronizationContext? _syncContext;
     private readonly RelayCommand _toggleMonitoringCommand;
     private readonly RelayCommand _exitCommand;
     private readonly RelayCommand _minimizeCommand;
 
-    private CancellationTokenSource? _monitoringCts;
-    private Task? _monitoringTask;
     private bool _disposed;
     private bool _isInitializingSettings;
 
@@ -41,6 +41,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private bool _minimizeToTray = true;
     private StatusDisplayMode _statusDisplayMode = StatusDisplayMode.Actual;
     private string _currentStatusText = "Not monitoring";
+    private string _statusMessage = string.Empty;
 
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler? RequestExit;
@@ -50,9 +51,14 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     public MainViewModel()
     {
+        Logger.LogInfo("Initializing MainViewModel");
+        
         _syncContext = SynchronizationContext.Current;
         _statusChecker = new KickStatusChecker.KickStatusChecker();
+        _discordPresenceManager = new DiscordPresenceManager();
+        _monitoringService = new MonitoringService(_statusChecker, _discordPresenceManager, _syncContext);
         _settingsService = new SettingsService();
+        
         StatusDisplayModes = new[]
         {
             new StatusDisplayOption("Actual Status", StatusDisplayMode.Actual),
@@ -64,9 +70,18 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         _exitCommand = new RelayCommand(() => RequestExit?.Invoke(this, EventArgs.Empty));
         _minimizeCommand = new RelayCommand(() => RequestMinimize?.Invoke(this, EventArgs.Empty));
 
+        // Subscribe to monitoring service events
+        _monitoringService.StreamStatusUpdated += OnStreamStatusUpdated;
+        _monitoringService.StatusMessageUpdated += OnStatusMessageUpdated;
+        _monitoringService.ErrorOccurred += OnErrorOccurred;
+        _monitoringService.MonitoringStarted += OnMonitoringStarted;
+        _monitoringService.MonitoringStopped += OnMonitoringStopped;
+
         LoadSettings();
         ValidateUsername();
         UpdateStatusDisplay();
+        
+        Logger.LogInfo("MainViewModel initialized successfully");
     }
 
     public RelayCommand ToggleMonitoringCommand => _toggleMonitoringCommand;
@@ -99,7 +114,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     public bool IsMonitoring
     {
-        get => _isMonitoring;
+        get => _monitoringService.IsMonitoring;
         private set
         {
             if (SetProperty(ref _isMonitoring, value))
@@ -152,6 +167,12 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public string LastUpdatedDisplay => _lastUpdated.HasValue
         ? _lastUpdated.Value.ToLocalTime().ToString("g")
         : "Never";
+
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        private set => SetProperty(ref _statusMessage, value);
+    }
 
     public string ErrorMessage
     {
@@ -209,10 +230,23 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
 
         _disposed = true;
+        Logger.LogInfo("Disposing MainViewModel");
 
-        StopMonitoring();
+        // Unsubscribe from events
+        if (_monitoringService != null)
+        {
+            _monitoringService.StreamStatusUpdated -= OnStreamStatusUpdated;
+            _monitoringService.StatusMessageUpdated -= OnStatusMessageUpdated;
+            _monitoringService.ErrorOccurred -= OnErrorOccurred;
+            _monitoringService.MonitoringStarted -= OnMonitoringStarted;
+            _monitoringService.MonitoringStopped -= OnMonitoringStopped;
+        }
+
+        _monitoringService?.Dispose();
         _statusChecker.Dispose();
         SaveSettings();
+        
+        Logger.LogInfo("MainViewModel disposed successfully");
     }
 
     private void LoadSettings()
@@ -253,7 +287,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         if (IsMonitoring)
         {
-            StopMonitoring();
+            _ = StopMonitoringAsync();
         }
         else
         {
@@ -276,95 +310,49 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         ValidateUsername();
         if (!string.IsNullOrEmpty(UsernameValidationMessage))
         {
+            Logger.LogWarning($"Cannot start monitoring - username validation failed: {UsernameValidationMessage}");
             return;
         }
 
         ErrorMessage = string.Empty;
-        IsMonitoring = true;
-        _monitoringCts = new CancellationTokenSource();
-        var token = _monitoringCts.Token;
+        StatusMessage = "Starting monitoring...";
 
-        // Kick off monitoring loop
-        _monitoringTask = Task.Run(() => MonitorLoopAsync(token), token);
-
-        await FetchStatusAsync(token).ConfigureAwait(false);
-    }
-
-    private async Task MonitorLoopAsync(CancellationToken token)
-    {
         try
         {
-            while (!token.IsCancellationRequested)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(UpdateIntervalSeconds), token).ConfigureAwait(false);
-                await FetchStatusAsync(token).ConfigureAwait(false);
-            }
+            Logger.LogInfo($"User requested to start monitoring for {Username}");
+            await _monitoringService.StartMonitoringAsync(Username, UpdateIntervalSeconds).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
+        catch (Exception ex)
         {
-            // Expected when stopping monitoring
+            Logger.LogError("Failed to start monitoring", ex);
+            ErrorMessage = $"Failed to start monitoring: {ex.Message}";
+            StatusMessage = "Failed to start monitoring";
         }
     }
 
-    private void StopMonitoring()
+    private async Task StopMonitoringAsync()
     {
         if (!IsMonitoring)
         {
             return;
         }
 
+        StatusMessage = "Stopping monitoring...";
+
         try
         {
-            _monitoringCts?.Cancel();
-            _monitoringTask?.Wait(TimeSpan.FromSeconds(1));
-        }
-        catch (AggregateException)
-        {
-            // ignored
-        }
-        catch (ObjectDisposedException)
-        {
-        }
-        finally
-        {
-            _monitoringCts?.Dispose();
-            _monitoringCts = null;
-            _monitoringTask = null;
-            IsMonitoring = false;
-        }
-    }
-
-    private async Task FetchStatusAsync(CancellationToken token)
-    {
-        try
-        {
-            var username = Username;
-            if (string.IsNullOrWhiteSpace(username))
-            {
-                return;
-            }
-
-            var info = await _statusChecker.GetStreamStatusAsync(username).ConfigureAwait(false);
-            if (info == null)
-            {
-                UpdateStreamInfo(null, $"Channel '{username}' was not found or returned no data.");
-            }
-            else
-            {
-                UpdateStreamInfo(info, string.Empty);
-            }
-        }
-        catch (Exception ex) when (ex is OperationCanceledException && token.IsCancellationRequested)
-        {
-            // Ignore cancellation
+            Logger.LogInfo("User requested to stop monitoring");
+            await _monitoringService.StopMonitoringAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            UpdateStreamInfo(null, $"Unable to fetch status: {ex.Message}");
+            Logger.LogError("Failed to stop monitoring", ex);
+            ErrorMessage = $"Failed to stop monitoring: {ex.Message}";
+            StatusMessage = "Failed to stop monitoring";
         }
     }
 
-    private void UpdateStreamInfo(KickStatusChecker.Models.StreamInfo? info, string error)
+    private void OnStreamStatusUpdated(object? sender, KickStatusChecker.Models.StreamInfo? info)
     {
         if (info != null)
         {
@@ -372,7 +360,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             Category = info.Category;
             IsLive = info.IsLive;
             CurrentStatusText = info.IsLive ? "Online" : "Offline";
-            ErrorMessage = error;
+            ErrorMessage = string.Empty;
         }
         else
         {
@@ -380,12 +368,32 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             Category = string.Empty;
             IsLive = false;
             CurrentStatusText = "Offline";
-            ErrorMessage = error;
+            ErrorMessage = "No stream data available";
         }
 
         _lastUpdated = DateTime.UtcNow;
         OnPropertyChanged(nameof(LastUpdatedDisplay));
         OnPropertyChanged(nameof(DisplayedStatusText));
+    }
+
+    private void OnStatusMessageUpdated(object? sender, string message)
+    {
+        StatusMessage = message;
+    }
+
+    private void OnErrorOccurred(object? sender, string error)
+    {
+        ErrorMessage = error;
+    }
+
+    private void OnMonitoringStarted(object? sender, EventArgs e)
+    {
+        IsMonitoring = true;
+    }
+
+    private void OnMonitoringStopped(object? sender, EventArgs e)
+    {
+        IsMonitoring = false;
     }
 
     private void ValidateUsername()

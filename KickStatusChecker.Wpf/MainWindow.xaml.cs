@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Forms;
 using KickStatusChecker.Wpf.ViewModels;
+using KickStatusChecker.Wpf.Services;
 
 namespace KickStatusChecker.Wpf;
 
@@ -15,6 +16,8 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        Logger.LogInfo("Initializing MainWindow");
+        
         InitializeComponent();
 
         var viewModel = new MainViewModel();
@@ -34,6 +37,8 @@ public partial class MainWindow : Window
         contextMenu.Items.Add("Exit", null, (_, _) => ExitFromTray());
         _notifyIcon.ContextMenuStrip = contextMenu;
         _notifyIcon.DoubleClick += (_, _) => RestoreFromTray();
+        
+        Logger.LogInfo("MainWindow initialized successfully");
     }
 
     private void OnRequestExit(object? sender, EventArgs e)
@@ -81,6 +86,7 @@ public partial class MainWindow : Window
     {
         if (!_isExitRequested && ViewModel.MinimizeToTray)
         {
+            Logger.LogInfo("Application minimized to tray instead of closing");
             e.Cancel = true;
             Hide();
             ShowInTaskbar = false;
@@ -88,9 +94,13 @@ public partial class MainWindow : Window
             return;
         }
 
+        Logger.LogInfo("Application is closing");
+        
         base.OnClosing(e);
         _notifyIcon.Visible = false;
         _notifyIcon.Dispose();
         ViewModel.Dispose();
+        
+        Logger.LogInfo("Application closed successfully");
     }
 }

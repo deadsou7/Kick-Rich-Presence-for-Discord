@@ -60,9 +60,13 @@
                            Margin="0,4,0,0" />
                 <TextBlock Text="{Binding LastUpdatedDisplay, StringFormat=Last Update: {0}}"
                            Margin="0,4,0,0" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           Margin="0,8,0,0"
+                           FontStyle="Italic"
+                           Foreground="Gray"/>
                 <TextBlock Text="{Binding ErrorMessage}"
                            Foreground="Crimson"
-                           Margin="0,10,0,0"
+                           Margin="0,4,0,0"
                            TextWrapping="Wrap"/>
             </StackPanel>
         </GroupBox>
