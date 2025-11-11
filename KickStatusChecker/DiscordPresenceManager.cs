@@ -34,7 +34,6 @@ public sealed class DiscordPresenceManager : IAsyncDisposable
         _client.Connected += OnConnectedAsync;
         _client.Disconnected += OnDisconnectedAsync;
         _client.Ready += OnReadyAsync;
-        _client.Resumed += OnResumedAsync;
     }
 
     public DiscordSocketClient Client => _client;
@@ -219,12 +218,6 @@ public sealed class DiscordPresenceManager : IAsyncDisposable
         return LogAsync(LogSeverity.Info, $"Discord client ready as {username}.");
     }
 
-    private Task OnResumedAsync(int shardId)
-    {
-        _readySignal.TrySetResult(true);
-        return LogAsync(LogSeverity.Info, $"Discord session resumed (shard {shardId}).");
-    }
-
     private Task OnDisconnectedAsync(Exception? exception)
     {
         _readySignal = CreateReadySignal();
@@ -294,7 +287,6 @@ public sealed class DiscordPresenceManager : IAsyncDisposable
         _client.Connected -= OnConnectedAsync;
         _client.Disconnected -= OnDisconnectedAsync;
         _client.Ready -= OnReadyAsync;
-        _client.Resumed -= OnResumedAsync;
 
         try
         {
