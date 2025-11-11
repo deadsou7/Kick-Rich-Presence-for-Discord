@@ -7,6 +7,16 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyTitle>Kick Stream Monitor</AssemblyTitle>
+    <AssemblyDescription>A desktop application for monitoring Kick stream status</AssemblyDescription>
+    <AssemblyCompany>KickStatusChecker</AssemblyCompany>
+    <AssemblyProduct>Kick Stream Monitor</AssemblyProduct>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <StartupObject>KickStatusChecker.Wpf.App</StartupObject>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
   <ItemGroup>

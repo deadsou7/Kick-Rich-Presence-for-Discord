@@ -217,7 +217,74 @@ The library fetches data by:
 - HtmlAgilityPack (for HTML parsing)
 - System.Text.Json (for JSON parsing)
 
-## Building and Testing
+## 🖥️ Desktop Application
+
+A complete WPF desktop application is included for monitoring Kick streams with a graphical interface.
+
+### Quick Start
+
+1. **Download the portable version**: [KickStreamMonitor-Portable-v1.0.0.zip](https://github.com/your-repo/kick-status-checker/releases/latest)
+2. **Extract to any folder**
+3. **Run `KickStatusChecker.Wpf.exe`** - no installation required!
+
+### Features
+- ✅ Real-time stream status monitoring
+- ✅ System tray integration
+- ✅ Customizable update intervals
+- ✅ Multiple display modes
+- ✅ Persistent settings
+- ✅ Completely standalone (no .NET installation required)
+
+### System Requirements
+- Windows 10 Version 1809+ or Windows 11
+- x64 (64-bit) architecture
+- 512MB RAM minimum
+
+For detailed installation and usage instructions, see [DISTRIBUTION_README.md](DISTRIBUTION_README.md).
+
+## 🔧 Building and Distribution
+
+### Quick Build (Windows)
+
+```powershell
+# Complete build with installer
+.\build-and-package.ps1
+
+# Quick build (executable only)
+.\build.ps1
+
+# Very quick build (no dependencies)
+.\quick-build.bat
+```
+
+### Cross-Platform Build
+
+```bash
+# Using Makefile (recommended)
+make all
+
+# Using shell script
+./build-and-package.sh
+
+# Manual .NET CLI
+dotnet publish KickStatusChecker.Wpf/KickStatusChecker.Wpf.csproj \
+    --configuration Release \
+    --runtime win-x64 \
+    --self-contained true \
+    --output publish \
+    -p:PublishSingleFile=true \
+    -p:PublishReadyToRun=true
+```
+
+### Build Artifacts
+
+- **Portable Version**: `KickStreamMonitor-Portable-v1.0.0.zip` - Extract and run
+- **Installer Version**: `KickStreamMonitor-Setup-v1.0.0.msi` - Windows installer
+- **Checksums**: `checksums.txt` - SHA256 integrity verification
+
+For complete build documentation, see [BUILD_GUIDE.md](BUILD_GUIDE.md) and [BUILD_SUMMARY.md](BUILD_SUMMARY.md).
+
+### Library Development
 
 ```bash
 # Build the solution
@@ -226,8 +293,11 @@ dotnet build
 # Run tests
 dotnet test
 
-# Run the demo application
+# Run the demo console application
 dotnet run --project KickStatusChecker.Demo
+
+# Run the WPF application in development mode
+dotnet run --project KickStatusChecker.Wpf
 ```
 
 ## License
