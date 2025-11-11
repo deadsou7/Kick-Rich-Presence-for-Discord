@@ -1,0 +1,24 @@
+# Runtime dependencies for Kick Presence
+
+# HTTP requests for Kick API
+requests>=2.31.0
+
+# Discord Rich Presence integration
+pypresence>=4.3.0
+
+# Web scraping (if needed for Kick monitoring)
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Image processing for icons/thumbnails
+pillow>=10.0.0
+
+# GUI framework (placeholder - will be replaced with actual GUI library)
+# tkinter comes with Python standard library
+# Alternative options to consider:
+# PyQt6>=6.5.0
+# PySide6>=6.5.0
+# kivy>=2.2.0
+
+# Configuration and environment variables
+python-dotenv>=1.0.0

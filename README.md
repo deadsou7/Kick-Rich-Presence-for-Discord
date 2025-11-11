@@ -1,6 +1,6 @@
 # Kick Stream Status Checker
 
-A C# library for monitoring Kick stream status and retrieving stream information.
+A multi-platform library for monitoring Kick stream status and retrieving stream information. Available in both C# (.NET) and Python implementations.
 
 ## Features
 
@@ -241,6 +241,80 @@ A complete WPF desktop application is included for monitoring Kick streams with 
 - 512MB RAM minimum
 
 For detailed installation and usage instructions, see [DISTRIBUTION_README.md](DISTRIBUTION_README.md).
+
+## 🐍 Python Implementation
+
+A Python desktop application for Kick monitoring with Discord Rich Presence support.
+
+### Quick Start
+
+```bash
+# Clone and setup
+git clone <repository-url>
+cd kick-status-checker
+
+# Install dependencies
+make install-dev
+
+# Run the application
+make run
+# or
+python -m kick_presence
+```
+
+### Features
+
+- ✅ Real-time Kick stream monitoring
+- ✅ Discord Rich Presence integration
+- ✅ Cross-platform GUI support
+- ✅ Configurable monitoring intervals
+- ✅ Persistent settings management
+- ✅ Centralized logging system
+
+### Requirements
+
+- Python 3.11 or later
+- See `requirements.txt` for runtime dependencies
+
+### Development Setup
+
+```bash
+# Install development dependencies
+make install-dev
+
+# Run tests
+make test
+
+# Code formatting and linting
+make format
+make lint
+
+# Type checking
+make type-check
+```
+
+### Project Structure
+
+```
+src/kick_presence/
+├── __init__.py          # Package initialization
+├── main.py              # Application entry point
+├── config.py            # Configuration management
+└── logging_config.py    # Logging setup
+
+tests/                   # Test suite
+├── __init__.py
+├── test_main.py
+└── test_config.py
+```
+
+### Configuration
+
+The application stores configuration in `~/.kick_presence/config.json` with settings for:
+- Kick monitoring (username, intervals, notifications)
+- Discord Rich Presence (client ID, enable/disable)
+- GUI preferences (theme, startup behavior)
+- Logging configuration
 
 ## 🔧 Building and Distribution
 
