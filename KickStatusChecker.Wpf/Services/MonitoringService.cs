@@ -1,24 +1,23 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using KickStatusChecker.Models;
 using KickStatusChecker.Wpf.Models;
 
 namespace KickStatusChecker.Wpf.Services;
 
 public class MonitoringService : IDisposable
 {
-    private readonly KickStatusChecker.KickStatusChecker _kickStatusChecker;
+    private readonly global::KickStatusChecker.KickStatusChecker _kickStatusChecker;
     private readonly DiscordPresenceManager _discordPresenceManager;
     private readonly SynchronizationContext? _syncContext;
 
     private CancellationTokenSource? _monitoringCts;
     private Task? _monitoringTask;
     private bool _disposed;
-    private StreamInfo? _lastStreamInfo;
+    private global::KickStatusChecker.Models.StreamInfo? _lastStreamInfo;
     private string _lastUsername = string.Empty;
 
-    public event EventHandler<StreamInfo?>? StreamStatusUpdated;
+    public event EventHandler<global::KickStatusChecker.Models.StreamInfo?>? StreamStatusUpdated;
     public event EventHandler<string>? StatusMessageUpdated;
     public event EventHandler<string>? ErrorOccurred;
     public event EventHandler? MonitoringStarted;
@@ -27,7 +26,7 @@ public class MonitoringService : IDisposable
     public bool IsMonitoring { get; private set; }
 
     public MonitoringService(
-        KickStatusChecker.KickStatusChecker kickStatusChecker,
+        global::KickStatusChecker.KickStatusChecker kickStatusChecker,
         DiscordPresenceManager discordPresenceManager,
         SynchronizationContext? syncContext = null)
     {
@@ -149,7 +148,7 @@ public class MonitoringService : IDisposable
                 Logger.LogWarning($"No stream data returned for {username}");
                 
                 // Channel not found or no data
-                var offlineInfo = new StreamInfo
+                var offlineInfo = new global::KickStatusChecker.Models.StreamInfo
                 {
                     Username = username,
                     Title = string.Empty,
@@ -173,7 +172,7 @@ public class MonitoringService : IDisposable
             OnErrorOccurred($"Failed to check stream status: {ex.Message}");
             
             // Create offline info on error
-            var errorInfo = new StreamInfo
+            var errorInfo = new global::KickStatusChecker.Models.StreamInfo
             {
                 Username = username,
                 Title = string.Empty,
@@ -187,7 +186,7 @@ public class MonitoringService : IDisposable
         }
     }
 
-    private async Task ProcessStreamInfoAsync(StreamInfo streamInfo, CancellationToken token)
+    private async Task ProcessStreamInfoAsync(global::KickStatusChecker.Models.StreamInfo streamInfo, CancellationToken token)
     {
         // Detect changes
         var hasChanged = HasStreamStatusChanged(streamInfo);
@@ -226,7 +225,7 @@ public class MonitoringService : IDisposable
         }
     }
 
-    private bool HasStreamStatusChanged(StreamInfo currentInfo)
+    private bool HasStreamStatusChanged(global::KickStatusChecker.Models.StreamInfo currentInfo)
     {
         if (_lastStreamInfo == null)
         {
@@ -268,7 +267,7 @@ public class MonitoringService : IDisposable
         _discordPresenceManager?.Dispose();
     }
 
-    private void OnStreamStatusUpdated(StreamInfo? streamInfo)
+    private void OnStreamStatusUpdated(global::KickStatusChecker.Models.StreamInfo? streamInfo)
     {
         if (_syncContext != null && SynchronizationContext.Current != _syncContext)
         {
